@@ -1,0 +1,34 @@
+version: '3.7'
+services:
+    db:
+        container_name: cross-db
+        image: mysql:8
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=default
+            - MYSQL_USER=user
+            - MYSQL_PASSWORD=password
+        volumes:
+            - ./docker/mysql/default_authentication.cnf:/etc/mysql/conf.d/default_authentication.cnf
+            - ./docker/misc/data:/var/lib/mysql
+        ports:
+            - "3306:3306"
+
+    web:
+        container_name: cross-web
+        build: ./docker/nginx
+        restart: always
+        ports:
+            - "443:443"
+        volumes:
+            - ./app/:/var/www/html
+
+    app:
+        container_name: cross-app
+        build: ./docker/php-fpm
+        restart: always
+        volumes:
+            - ./app/:/var/www/html
+        environment:
+            DATABASE_URL: "mysql://user:password@db/default?encoding=utf8mb4&timezone=UTC&cacheMetadata=true"
+            DATABASE_TEST_URL: "mysql://user:password@db/test?encoding=utf8mb4&timezone=UTC&cacheMetadata=true"
